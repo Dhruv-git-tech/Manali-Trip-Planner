@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { getPlaceInfo } from '../utils/gemini';
-import { Sparkles, Globe } from 'lucide-react';
+import { Sparkles, Globe, MapPin } from 'lucide-react';
+import { Place } from '../types';
 
 interface GeminiInfoCardProps {
   placeName: string;
-  onFetched: (description: string, sources: { uri: string; title: string; }[]) => void;
+  onFetched: (description: string, sources: Place['sources']) => void;
   cachedDescription?: string;
-  cachedSources?: { uri: string; title: string; }[];
+  cachedSources?: Place['sources'];
 }
 
 const GeminiInfoCard: React.FC<GeminiInfoCardProps> = ({ placeName, onFetched, cachedDescription, cachedSources }) => {
-  const [info, setInfo] = useState<{ text: string, sources: { uri: string; title: string; }[] } | null>(null);
+  const [info, setInfo] = useState<{ text: string, sources: Place['sources'] } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -57,7 +58,8 @@ const GeminiInfoCard: React.FC<GeminiInfoCardProps> = ({ placeName, onFetched, c
             </h4>
             <div className="flex flex-wrap gap-2 mt-1">
                 {info.sources.map((source, index) => (
-                    <a href={source.uri} key={index} target="_blank" rel="noopener noreferrer" className="text-xs text-teal-600 bg-teal-100 px-2 py-0.5 rounded-full hover:underline dark:bg-teal-900 dark:text-teal-300">
+                    <a href={source.uri} key={index} target="_blank" rel="noopener noreferrer" className="flex items-center text-xs text-teal-600 bg-teal-100 px-2 py-0.5 rounded-full hover:underline dark:bg-teal-900 dark:text-teal-300">
+                        {source.type === 'map' && <MapPin size={12} className="mr-1" />}
                         {source.title}
                     </a>
                 ))}

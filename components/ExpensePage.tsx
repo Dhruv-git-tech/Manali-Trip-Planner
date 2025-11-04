@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import useLocalStorage from '../hooks/useLocalStorage';
-import { Expense, ExpenseCategory } from '../types';
+import { Expense, ExpenseCategory, User } from '../types';
 import { USERS, CURRENT_USER_ID } from '../constants';
 import { Plus, Trash2, ArrowUpDown, Layers } from 'lucide-react';
 
@@ -23,6 +23,7 @@ const categoryBarColors: { [key in ExpenseCategory]: string } = {
 
 const ExpensePage: React.FC = () => {
     const [expenses, setExpenses] = useLocalStorage<Expense[]>('trip-expenses', []);
+    const [users] = useLocalStorage<User[]>('trip-users', USERS);
     const [description, setDescription] = useState('');
     const [amount, setAmount] = useState('');
     const [category, setCategory] = useState<ExpenseCategory>('Food');
@@ -52,16 +53,14 @@ const ExpensePage: React.FC = () => {
     };
     
     const removeExpense = (id: string) => {
-        setExpenses(expenses.filter(exp => exp.id !== id && exp.userId === CURRENT_USER_ID));
+        setExpenses(expenses.filter(exp => exp.id !== id || exp.userId !== CURRENT_USER_ID));
     };
 
     const myExpenses = useMemo(() => expenses.filter(e => e.userId === CURRENT_USER_ID), [expenses]);
     
     const sortedMyExpenses = useMemo(() => 
         [...myExpenses].sort((a, b) => {
-            if (sortBy === 'newest') {
-                return new Date(b.date).getTime() - new Date(a.date).getTime();
-            }
+            if (sortBy === 'newest') return new Date(b.date).getTime() - new Date(a.date).getTime();
             return new Date(a.date).getTime() - new Date(b.date).getTime();
         }), 
         [myExpenses, sortBy]
@@ -69,9 +68,7 @@ const ExpensePage: React.FC = () => {
 
     const sortedGroupExpenses = useMemo(() =>
         [...expenses].sort((a, b) => {
-            if (sortBy === 'newest') {
-                return new Date(b.date).getTime() - new Date(a.date).getTime();
-            }
+            if (sortBy === 'newest') return new Date(b.date).getTime() - new Date(a.date).getTime();
             return new Date(a.date).getTime() - new Date(b.date).getTime();
         }),
         [expenses, sortBy]
@@ -80,42 +77,31 @@ const ExpensePage: React.FC = () => {
     const totalMyExpenses = useMemo(() => myExpenses.reduce((sum, e) => sum + e.amount, 0), [myExpenses]);
     const totalGroupExpense = useMemo(() => expenses.reduce((sum, e) => sum + e.amount, 0), [expenses]);
     
-    const myCategorySummary = useMemo(() => {
-        return myExpenses.reduce((acc, exp) => {
-            acc[exp.category] = (acc[exp.category] || 0) + exp.amount;
-            return acc;
-        }, {} as Record<ExpenseCategory, number>);
-    }, [myExpenses]);
+    const myCategorySummary = useMemo(() => myExpenses.reduce((acc, exp) => {
+        acc[exp.category] = (acc[exp.category] || 0) + exp.amount;
+        return acc;
+    }, {} as Record<ExpenseCategory, number>), [myExpenses]);
 
-    const groupCategorySummary = useMemo(() => {
-        return expenses.reduce((acc, exp) => {
-            acc[exp.category] = (acc[exp.category] || 0) + exp.amount;
-            return acc;
-        }, {} as Record<ExpenseCategory, number>);
-    }, [expenses]);
+    const groupCategorySummary = useMemo(() => expenses.reduce((acc, exp) => {
+        acc[exp.category] = (acc[exp.category] || 0) + exp.amount;
+        return acc;
+    }, {} as Record<ExpenseCategory, number>), [expenses]);
 
-
-    const getUserById = (id: number) => USERS.find(u => u.id === id);
+    const getUserById = (id: number) => users.find(u => u.id === id);
 
     const CategorySummary = ({ summary, total }: { summary: Record<ExpenseCategory, number>; total: number }) => {
         if (total === 0) {
             return (
                  <div className="p-4 mb-4 bg-white rounded-lg shadow-sm dark:bg-gray-800">
-                    <h3 className="flex items-center mb-3 font-semibold text-md">
-                        <Layers size={18} className="mr-2 text-gray-500" />
-                        Spending Breakdown
-                    </h3>
-                    <p className="py-4 text-sm text-center text-gray-500">No expenses logged yet to show a chart.</p>
+                    <h3 className="flex items-center mb-3 font-semibold text-md"><Layers size={18} className="mr-2 text-gray-500" />Spending Breakdown</h3>
+                    <p className="py-4 text-sm text-center text-gray-500">No expenses logged yet.</p>
                 </div>
             );
         }
         
         return (
             <div className="p-4 mb-4 bg-white rounded-lg shadow-sm dark:bg-gray-800">
-                <h3 className="flex items-center mb-4 font-semibold text-md">
-                    <Layers size={18} className="mr-2 text-gray-500" />
-                    Spending Breakdown
-                </h3>
+                <h3 className="flex items-center mb-4 font-semibold text-md"><Layers size={18} className="mr-2 text-gray-500" />Spending Breakdown</h3>
                 <div className="space-y-4">
                     {Object.entries(summary).sort(([,a], [,b]) => b - a).map(([cat, catTotal]) => {
                         const percentage = total > 0 ? (catTotal / total) * 100 : 0;
@@ -126,10 +112,7 @@ const ExpensePage: React.FC = () => {
                                     <span className="text-gray-600 dark:text-gray-400">₹{catTotal.toFixed(2)}</span>
                                 </div>
                                 <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-                                    <div
-                                        className={`h-2.5 rounded-full ${categoryBarColors[cat as ExpenseCategory]}`}
-                                        style={{ width: `${percentage}%` }}
-                                    ></div>
+                                    <div className={`h-2.5 rounded-full ${categoryBarColors[cat as ExpenseCategory]}`} style={{ width: `${percentage}%` }}></div>
                                 </div>
                             </div>
                         );
@@ -172,17 +155,13 @@ const ExpensePage: React.FC = () => {
                                 <div>
                                     <p className="font-semibold">{exp.description}</p>
                                     <div className="flex items-center mt-1 space-x-2">
-                                        <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${categoryStyles[exp.category]}`}>
-                                            {exp.category}
-                                        </span>
+                                        <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${categoryStyles[exp.category]}`}>{exp.category}</span>
                                         <p className="text-sm text-gray-500 dark:text-gray-400">{new Date(exp.date).toLocaleDateString()}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center space-x-4">
                                   <p className="font-bold text-lg">₹{exp.amount.toFixed(2)}</p>
-                                  <button onClick={() => removeExpense(exp.id)} className="text-red-500 hover:text-red-700">
-                                    <Trash2 size={18} />
-                                  </button>
+                                  <button onClick={() => removeExpense(exp.id)} className="text-red-500 hover:text-red-700"><Trash2 size={18} /></button>
                                 </div>
                             </li>
                         ))}
@@ -208,9 +187,7 @@ const ExpensePage: React.FC = () => {
                                         <div>
                                             <p className="font-semibold">{exp.description}</p>
                                             <div className="flex items-center mt-1 space-x-2">
-                                                <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${categoryStyles[exp.category]}`}>
-                                                    {exp.category}
-                                                </span>
+                                                <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${categoryStyles[exp.category]}`}>{exp.category}</span>
                                                 <p className="text-sm text-gray-500 dark:text-gray-400">by {user?.name}</p>
                                             </div>
                                         </div>
@@ -223,40 +200,16 @@ const ExpensePage: React.FC = () => {
                 </div>
             )}
             
-            <button
-                onClick={() => setShowForm(!showForm)}
-                className="fixed z-20 flex items-center justify-center w-16 h-16 text-white bg-teal-500 rounded-full shadow-lg bottom-24 right-4 hover:bg-teal-600"
-            >
-                <Plus size={32} />
-            </button>
+            <button onClick={() => setShowForm(!showForm)} className="fixed z-20 flex items-center justify-center w-16 h-16 text-white bg-teal-500 rounded-full shadow-lg bottom-24 right-4 hover:bg-teal-600"><Plus size={32} /></button>
 
             {showForm && (
                 <div className="fixed inset-0 z-30 flex items-center justify-center bg-black bg-opacity-50">
                     <div className="w-full max-w-sm p-6 bg-white rounded-lg shadow-xl dark:bg-gray-800 m-4">
                         <h2 className="mb-4 text-xl font-bold">Add New Expense</h2>
                         <form onSubmit={addExpense}>
-                            <input
-                                type="text"
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                placeholder="Expense Description"
-                                className="w-full p-2 mb-4 border rounded dark:bg-gray-700 dark:border-gray-600"
-                                required
-                            />
-                            <input
-                                type="number"
-                                value={amount}
-                                onChange={(e) => setAmount(e.target.value)}
-                                placeholder="Amount"
-                                className="w-full p-2 mb-4 border rounded dark:bg-gray-700 dark:border-gray-600"
-                                required
-                            />
-                             <select
-                                value={category}
-                                onChange={(e) => setCategory(e.target.value as ExpenseCategory)}
-                                className="w-full p-2 mb-4 border rounded dark:bg-gray-700 dark:border-gray-600"
-                                required
-                            >
+                            <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Expense Description" className="w-full p-2 mb-4 border rounded dark:bg-gray-700 dark:border-gray-600" required />
+                            <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Amount" className="w-full p-2 mb-4 border rounded dark:bg-gray-700 dark:border-gray-600" required />
+                             <select value={category} onChange={(e) => setCategory(e.target.value as ExpenseCategory)} className="w-full p-2 mb-4 border rounded dark:bg-gray-700 dark:border-gray-600" required>
                                 {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                             </select>
                             <div className="flex justify-end space-x-2">

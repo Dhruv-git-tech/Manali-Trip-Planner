@@ -12,6 +12,7 @@ export interface ItineraryDay {
   mealPlan: string;
   details: string;
   image: string;
+  city: 'Delhi' | 'Shimla' | 'Manali';
 }
 
 export type ExpenseCategory = 'Food' | 'Travel' | 'Accommodation' | 'Activities' | 'Other';
@@ -54,5 +55,9 @@ export interface Place {
   lat?: number;
   lng?: number;
   description?: string;
-  sources?: { uri: string; title: string; }[];
+  sources?: { 
+    uri: string; 
+    title: string; 
+    type: 'web' | 'map'; 
+  }[];
 }

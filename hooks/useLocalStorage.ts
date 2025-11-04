@@ -1,5 +1,3 @@
-
-// FIX: Import `React` to bring the React namespace into scope for type annotations.
 import React, { useState, useEffect } from 'react';
 
 function useLocalStorage<T,>(key: string, initialValue: T): [T, React.Dispatch<React.SetStateAction<T>>] {
@@ -33,7 +31,6 @@ function useLocalStorage<T,>(key: string, initialValue: T): [T, React.Dispatch<R
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, initialValue]);
 
   return [storedValue, setValue];

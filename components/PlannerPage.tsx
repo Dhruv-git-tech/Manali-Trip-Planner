@@ -40,26 +40,17 @@ const PlannerPage: React.FC = () => {
         setPlaces(places.map(place => place.id === id ? { ...place, visited: !place.visited } : place));
     };
 
-    const removeTodo = (id: string) => {
-        setTodos(todos.filter(todo => todo.id !== id));
-    };
-    
-    const removePlace = (id: string) => {
-        setPlaces(places.filter(place => place.id !== id));
-    };
+    const removeTodo = (id: string) => setTodos(todos.filter(todo => todo.id !== id));
+    const removePlace = (id: string) => setPlaces(places.filter(place => place.id !== id));
 
-    const handleToggleInfo = (id: string) => {
-        setInfoPlaceId(currentId => (currentId === id ? null : id));
-    };
+    const handleToggleInfo = (id: string) => setInfoPlaceId(currentId => (currentId === id ? null : id));
 
-    const handleInfoFetched = (id: string, description: string, sources: {uri: string, title: string}[]) => {
+    const handleInfoFetched = (id: string, description: string, sources: Place['sources']) => {
         setPlaces(places.map(p => p.id === id ? { ...p, description, sources } : p));
     };
 
-
     return (
         <div className="space-y-8 animate-fade-in">
-            {/* Must Visit Section */}
             <div className="p-4 bg-white rounded-lg shadow-md dark:bg-gray-800">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-bold">Must Visit Places & Cafes</h2>
@@ -67,21 +58,15 @@ const PlannerPage: React.FC = () => {
                         onClick={() => setShowMap(!showMap)} 
                         className={`p-2 rounded-full transition-colors ${showMap ? 'bg-teal-100 text-teal-600 dark:bg-teal-900' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                         aria-label="Toggle map view"
-                    >
-                        <Map size={20} />
-                    </button>
+                    ><Map size={20} /></button>
                 </div>
                 
                 {showMap && (
                     <div className="mb-4 h-64 overflow-hidden rounded-lg shadow-md">
                         <iframe
                             src="https://maps.google.com/maps?q=Manali&t=&z=13&ie=UTF8&iwloc=&output=embed"
-                            width="100%"
-                            height="100%"
-                            style={{ border: 0 }}
-                            allowFullScreen={false}
-                            loading="lazy"
-                            referrerPolicy="no-referrer-when-downgrade"
+                            width="100%" height="100%" style={{ border: 0 }}
+                            allowFullScreen={false} loading="lazy" referrerPolicy="no-referrer-when-downgrade"
                             title="Map of Manali"
                         ></iframe>
                     </div>
@@ -99,21 +84,11 @@ const PlannerPage: React.FC = () => {
                                     <span className={`truncate ${place.visited ? 'line-through text-gray-500' : ''}`}>{place.name}</span>
                                 </div>
                                 <div className="flex items-center flex-shrink-0 ml-2 space-x-2">
-                                     <button
-                                        onClick={() => handleToggleInfo(place.id)}
-                                        className={`text-gray-400 hover:text-yellow-500 transition-colors ${infoPlaceId === place.id ? 'text-yellow-500' : ''}`}
-                                        aria-label={`Get info about ${place.name}`}
-                                    >
+                                     <button onClick={() => handleToggleInfo(place.id)} className={`text-gray-400 hover:text-yellow-500 transition-colors ${infoPlaceId === place.id ? 'text-yellow-500' : ''}`} aria-label={`Get info about ${place.name}`}>
                                         <Sparkles size={18} />
                                     </button>
                                     {place.lat && place.lng && (
-                                        <a
-                                            href={`https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lng}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-gray-400 hover:text-teal-500"
-                                            aria-label={`Get directions to ${place.name}`}
-                                        >
+                                        <a href={`https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lng}`} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-teal-500" aria-label={`Get directions to ${place.name}`}>
                                             <Navigation size={16} />
                                         </a>
                                     )}
@@ -141,7 +116,6 @@ const PlannerPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* To-Do List Section */}
             <div className="p-4 bg-white rounded-lg shadow-md dark:bg-gray-800">
                 <h2 className="mb-4 text-xl font-bold">Shared To-Do List</h2>
                 <div className="space-y-2">

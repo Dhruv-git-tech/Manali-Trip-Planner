@@ -1,17 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import useLocalStorage from '../hooks/useLocalStorage';
-import { Message } from '../types';
+import { Message, User } from '../types';
 import { USERS, CURRENT_USER_ID } from '../constants';
 import { ArrowLeft, Send } from 'lucide-react';
 
 const ChatPage: React.FC = () => {
     const [messages, setMessages] = useLocalStorage<Message[]>('trip-messages', []);
+    const [users] = useLocalStorage<User[]>('trip-users', USERS);
     const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
     const [newMessage, setNewMessage] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    const currentUser = USERS.find(u => u.id === CURRENT_USER_ID)!;
-    const friends = USERS.filter(u => u.id !== CURRENT_USER_ID);
+    const currentUser = users.find(u => u.id === CURRENT_USER_ID)!;
+    const friends = users.filter(u => u.id !== CURRENT_USER_ID);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -33,7 +34,7 @@ const ChatPage: React.FC = () => {
     };
     
     if (selectedUserId) {
-        const selectedUser = USERS.find(u => u.id === selectedUserId)!;
+        const selectedUser = users.find(u => u.id === selectedUserId)!;
         const chatMessages = messages.filter(
             m => (m.senderId === CURRENT_USER_ID && m.receiverId === selectedUserId) ||
                  (m.senderId === selectedUserId && m.receiverId === CURRENT_USER_ID)
@@ -66,7 +67,7 @@ const ChatPage: React.FC = () => {
                         value={newMessage}
                         onChange={e => setNewMessage(e.target.value)}
                         placeholder="Type a message..."
-                        className="flex-grow p-2 bg-gray-100 border-none rounded-l-full dark:bg-gray-700"
+                        className="flex-grow p-2 bg-gray-100 border-none rounded-l-full dark:bg-gray-700 focus:ring-0"
                     />
                     <button type="submit" className="p-3 text-white bg-teal-500 rounded-r-full"><Send /></button>
                 </form>

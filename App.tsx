@@ -6,7 +6,7 @@ import PhotoPage from './components/PhotoPage';
 import PlannerPage from './components/PlannerPage';
 import ChatPage from './components/ChatPage';
 import FriendsPage from './components/FriendsPage';
-import { USERS, motivationalQuotes } from './constants';
+import { motivationalQuotes } from './constants';
 
 type Page = 'home' | 'expenses' | 'photos' | 'planner' | 'chat' | 'friends';
 
@@ -22,7 +22,6 @@ const App: React.FC = () => {
     };
 
     useEffect(() => {
-        // Daily morning quote notification
         const morningCheck = () => {
             const lastShown = localStorage.getItem('morningQuoteDate');
             const today = new Date().toISOString().split('T')[0];
@@ -33,12 +32,11 @@ const App: React.FC = () => {
             }
         };
         morningCheck();
-        const morningInterval = setInterval(morningCheck, 60 * 60 * 1000); // Check every hour
+        const morningInterval = setInterval(morningCheck, 60 * 60 * 1000);
 
-        // Reminder notifications
-        const waterReminder = setInterval(() => triggerNotification("💧 Reminder: Stay hydrated! Drink some water."), 2 * 60 * 60 * 1000); // Every 2 hours
-        const foodReminder = setInterval(() => triggerNotification("🍎 Reminder: Time to grab a bite and refuel!"), 3.5 * 60 * 60 * 1000); // Every 3.5 hours
-        const parentsReminder = setInterval(() => triggerNotification("📞 Reminder: Call your parents and share your adventures!"), 24 * 60 * 60 * 1000); // Once a day
+        const waterReminder = setInterval(() => triggerNotification("💧 Reminder: Stay hydrated! Drink some water."), 2 * 60 * 60 * 1000);
+        const foodReminder = setInterval(() => triggerNotification("🍎 Reminder: Time to grab a bite and refuel!"), 3.5 * 60 * 60 * 1000);
+        const parentsReminder = setInterval(() => triggerNotification("📞 Reminder: Call your parents and share your adventures!"), 24 * 60 * 60 * 1000);
 
         return () => {
             clearInterval(morningInterval);
@@ -50,20 +48,13 @@ const App: React.FC = () => {
 
     const renderPage = () => {
         switch (activePage) {
-            case 'home':
-                return <HomePage />;
-            case 'expenses':
-                return <ExpensePage />;
-            case 'photos':
-                return <PhotoPage />;
-            case 'planner':
-                return <PlannerPage />;
-            case 'chat':
-                return <ChatPage />;
-            case 'friends':
-                return <FriendsPage />;
-            default:
-                return <HomePage />;
+            case 'home': return <HomePage />;
+            case 'expenses': return <ExpensePage />;
+            case 'photos': return <PhotoPage />;
+            case 'planner': return <PlannerPage />;
+            case 'chat': return <ChatPage />;
+            case 'friends': return <FriendsPage />;
+            default: return <HomePage />;
         }
     };
     
@@ -89,7 +80,7 @@ const App: React.FC = () => {
                 </div>
             </header>
             
-            <main className="pb-24 p-4">
+            <main className="p-4 pb-24">
                 {renderPage()}
             </main>
             
