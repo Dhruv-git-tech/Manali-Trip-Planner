@@ -143,8 +143,8 @@ const HomePage: React.FC = () => {
                 <div className="p-4 border border-gray-200 rounded-lg dark:border-gray-700">
                     <p className="font-semibold">Train: RAJDHANI EXP (22691)</p>
                     <p className="text-sm text-gray-600 dark:text-gray-300">Secunderabad Jn to Hazrat Nizamuddin Delhi</p>
-                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-300"><span className="font-semibold">Departure:</span> 12 Nov 2025, 07:15</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-300"><span className="font-semibold">Arrival:</span> 13 Nov 2025, 05:30</p>
+                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-300"><span className="font-semibold">Departure:</span> 12 Nov 2025, 10:30</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300"><span className="font-semibold">Arrival:</span> 13 Nov 2025, 12:50</p>
                 </div>
             </div>
 

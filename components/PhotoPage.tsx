@@ -3,12 +3,14 @@ import useLocalStorage from '../hooks/useLocalStorage';
 import { Photo, User } from '../types';
 import { USERS, CURRENT_USER_ID } from '../constants';
 import { PlusCircle, Sparkles } from 'lucide-react';
-import { generateCaptionForImage } from '../utils/gemini';
+import { generateCaptionsForImage } from '../utils/gemini';
 
 const PhotoPage: React.FC = () => {
     const [photos, setPhotos] = useLocalStorage<Photo[]>('trip-photos', []);
     const [users] = useLocalStorage<User[]>('trip-users', USERS);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [captionChoices, setCaptionChoices] = useState<string[]>([]);
+    const [pendingPhotoUrl, setPendingPhotoUrl] = useState<string | null>(null);
     
     const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -17,25 +19,55 @@ const PhotoPage: React.FC = () => {
             const reader = new FileReader();
             reader.onload = async (e) => {
                 const base64Url = e.target?.result as string;
-                const caption = await generateCaptionForImage(base64Url, file.type);
+                const captions = await generateCaptionsForImage(base64Url, file.type);
                 
-                const newPhoto: Photo = {
-                    id: new Date().toISOString(),
-                    userId: CURRENT_USER_ID,
-                    url: base64Url,
-                    caption: caption,
-                };
-                setPhotos(prevPhotos => [newPhoto, ...prevPhotos]);
+                setPendingPhotoUrl(base64Url);
+                setCaptionChoices(captions);
                 setIsGenerating(false);
             };
             reader.readAsDataURL(file);
         }
     };
     
+    const handleCaptionSelect = (caption: string) => {
+        if (pendingPhotoUrl) {
+            const newPhoto: Photo = {
+                id: new Date().toISOString(),
+                userId: CURRENT_USER_ID,
+                url: pendingPhotoUrl,
+                caption: caption,
+            };
+            setPhotos(prevPhotos => [newPhoto, ...prevPhotos]);
+        }
+        setPendingPhotoUrl(null);
+        setCaptionChoices([]);
+    };
+
     const getUserById = (id: number) => users.find(u => u.id === id);
+    
+    const CaptionSelectionModal = () => (
+        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black bg-opacity-50 animate-fade-in">
+            <div className="w-full max-w-sm p-6 bg-white rounded-lg shadow-xl dark:bg-gray-800 m-4">
+                <h2 className="mb-4 text-xl font-bold">Choose a Caption</h2>
+                {pendingPhotoUrl && <img src={pendingPhotoUrl} alt="Awaiting caption" className="w-full mb-4 rounded-lg aspect-square object-cover" />}
+                <div className="space-y-3">
+                    {captionChoices.map((caption, index) => (
+                        <button
+                            key={index}
+                            onClick={() => handleCaptionSelect(caption)}
+                            className="w-full p-3 text-left bg-gray-100 rounded-lg dark:bg-gray-700 hover:bg-teal-100 dark:hover:bg-teal-800 transition-colors"
+                        >
+                            "{caption}"
+                        </button>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
 
     return (
         <div className="animate-fade-in">
+            {pendingPhotoUrl && <CaptionSelectionModal />}
              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div 
                     onClick={() => !isGenerating && document.getElementById('photo-uploader-input')?.click()}

@@ -77,7 +77,7 @@ export async function getTravelTips() {
   }
 }
 
-export async function generateCaptionForImage(base64Url: string, mimeType: string): Promise<string> {
+export async function generateCaptionsForImage(base64Url: string, mimeType: string): Promise<string[]> {
   try {
     const base64Data = base64Url.split(',')[1];
     if (!base64Data) {
@@ -92,24 +92,31 @@ export async function generateCaptionForImage(base64Url: string, mimeType: strin
     };
 
     const textPart = {
-      text: "Generate a fun, short, and creative caption for this image from a friends' trip to Manali. Keep it under 15 words. Be witty and engaging.",
+      text: "Generate 3 fun, short, and creative caption options for this image from a friends' trip to Manali. Keep each under 15 words. Be witty and engaging. Return the response as a JSON array of strings.",
     };
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: { parts: [imagePart, textPart] },
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: { type: Type.STRING }
+        }
+      }
     });
     
-    const caption = response.text.trim().replace(/"/g, ''); // Clean up the output
+    const captions = JSON.parse(response.text);
     
-    if (!caption) {
-        throw new Error("Empty caption generated.");
+    if (!captions || captions.length === 0) {
+        throw new Error("Empty captions generated.");
     }
     
-    return caption;
+    return captions.map((c: string) => c.replace(/"/g, ''));
 
   } catch (error) {
-    console.error("Error generating image caption:", error);
-    return "Another great memory captured!"; // Fallback caption
+    console.error("Error generating image captions:", error);
+    return ["Another great memory captured!", "Manali vibes!", "Best trip ever!"]; // Fallback captions
   }
 }
